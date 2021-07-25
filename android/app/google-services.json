@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "278465718856",
+    "project_id": "meeting-reminder-db172",
+    "storage_bucket": "meeting-reminder-db172.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:278465718856:android:60fd20b0b0fe607c0d467d",
+        "android_client_info": {
+          "package_name": "com.example.meeting_reminder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "278465718856-e79g2s356h217ot6pomimtitmqqtip1q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqFIfaxBnuka9akQW_iJUWGEu9uP_nZKU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "278465718856-e79g2s356h217ot6pomimtitmqqtip1q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

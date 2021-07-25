@@ -191,7 +191,10 @@ class _LoginSignupState extends State<LoginSignup> {
                 Text(isSignUpScreen ? "Or Signup with" : "Or Login with"),
                 Container(
                   margin: EdgeInsets.only(right: 20, left: 20, top: 15),
-                  child: buildTextButton("Google", googleColor),
+                  child: buildTextButton(
+                    "Google",
+                    googleColor,
+                  ),
                 ),
               ],
             ),

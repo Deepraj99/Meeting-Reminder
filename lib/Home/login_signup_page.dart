@@ -1,5 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:meeting_reminder/Home/homePage.dart';
+import 'package:meeting_reminder/Home/methods.dart';
 import 'package:meeting_reminder/Widgets/colors.dart';
+import 'package:meeting_reminder/Widgets/toastMsg.dart';
 
 class LoginSignup extends StatefulWidget {
   LoginSignup({Key? key}) : super(key: key);
@@ -12,6 +17,15 @@ class _LoginSignupState extends State<LoginSignup> {
   bool isSignUpScreen = true;
   bool isMale = true;
   bool isRememberMe = false;
+
+  bool _isLoggedIn = false;
+  late GoogleSignInAccount _userObj;
+  GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  final _name = TextEditingController();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +49,7 @@ class _LoginSignupState extends State<LoginSignup> {
                   top: 90,
                   left: 20,
                 ),
-                color: Color(0xFF3b5999).withOpacity(.85),
+                color: Color(0xFF444974).withOpacity(.85),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -80,11 +94,11 @@ class _LoginSignupState extends State<LoginSignup> {
           AnimatedPositioned(
             duration: Duration(milliseconds: 700),
             curve: Curves.bounceInOut,
-            top: isSignUpScreen ? 200 : 230,
+            top: isSignUpScreen ? 230 : 250,
             child: AnimatedContainer(
               duration: Duration(milliseconds: 700),
               curve: Curves.bounceInOut,
-              height: isSignUpScreen ? 380 : 250,
+              height: isSignUpScreen ? 325 : 270,
               padding: EdgeInsets.all(20),
               width: MediaQuery.of(context).size.width - 40,
               margin: EdgeInsets.symmetric(horizontal: 20),
@@ -177,14 +191,7 @@ class _LoginSignupState extends State<LoginSignup> {
                 Text(isSignUpScreen ? "Or Signup with" : "Or Login with"),
                 Container(
                   margin: EdgeInsets.only(right: 20, left: 20, top: 15),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      buildTextButton(
-                          Icons.facebook, "Facebook", facebookColor),
-                      buildTextButton(Icons.facebook, "Google", googleColor),
-                    ],
-                  ),
+                  child: buildTextButton("Google", googleColor),
                 ),
               ],
             ),
@@ -196,36 +203,11 @@ class _LoginSignupState extends State<LoginSignup> {
 
   Container buildLoginSection() {
     return Container(
-      margin: EdgeInsets.only(top: 20),
+      margin: EdgeInsets.only(top: 40),
       child: Column(
         children: [
-          buildTextField(Icons.mail_outline, "info@example.com", false, true),
-          buildTextField(Icons.lock_outline, "********", true, false),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Checkbox(
-                      value: isRememberMe,
-                      activeColor: textColor2,
-                      onChanged: (value) {
-                        setState(() {
-                          isRememberMe = !isRememberMe;
-                        });
-                      }),
-                  Text("Remember me",
-                      style: TextStyle(fontSize: 12, color: textColor1)),
-                ],
-              ),
-              TextButton(
-                  onPressed: () {},
-                  child: Text(
-                    "Forget Password?",
-                    style: TextStyle(fontSize: 12, color: textColor1),
-                  ))
-            ],
-          ),
+          buildTextField(Icons.mail_outline, "Email", false, true),
+          buildTextField(Icons.lock_outline, "Password", true, false),
         ],
       ),
     );
@@ -233,120 +215,78 @@ class _LoginSignupState extends State<LoginSignup> {
 
   Container buildSignupSection() {
     return Container(
-      margin: EdgeInsets.only(top: 20),
+      margin: EdgeInsets.only(top: 40),
       child: Column(
         children: [
           buildTextField(Icons.person_outline, "User name", false, false),
           buildTextField(Icons.email_outlined, "Email", false, true),
           buildTextField(Icons.lock_outline, "Password", true, false),
-          Padding(
-            padding: const EdgeInsets.only(top: 10, left: 10),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isMale = true;
-                    });
-                  },
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        margin: EdgeInsets.only(right: 8),
-                        decoration: BoxDecoration(
-                          color: isMale ? textColor2 : Colors.transparent,
-                          border: Border.all(
-                              width: 1,
-                              color: isMale ? Colors.transparent : textColor1),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Icon(Icons.person_outline,
-                            color: isMale ? Colors.white : iconColor),
-                      ),
-                      Text(
-                        "Male",
-                        style: TextStyle(color: textColor1),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: 30),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isMale = false;
-                    });
-                  },
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 30,
-                        height: 30,
-                        margin: EdgeInsets.only(right: 8),
-                        decoration: BoxDecoration(
-                          color: isMale ? Colors.transparent : textColor2,
-                          border: Border.all(
-                              width: 1,
-                              color: isMale ? textColor1 : Colors.transparent),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Icon(Icons.person_outline,
-                            color: isMale ? iconColor : Colors.white),
-                      ),
-                      Text(
-                        "Female",
-                        style: TextStyle(color: textColor1),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 200,
-            margin: EdgeInsets.only(top: 20),
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                text: "By pressing 'Submit' you agree to our ",
-                style: TextStyle(color: textColor2),
-                children: [
-                  TextSpan(
-                    text: "term & conditions",
-                    style: TextStyle(color: Colors.orange),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  TextButton buildTextButton(
-      IconData icon, String title, Color backgroundColor) {
-    return TextButton(
-      onPressed: () {},
-      style: TextButton.styleFrom(
-        side: BorderSide(width: 1, color: Colors.grey),
-        minimumSize: Size(155, 40),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        primary: Colors.white,
-        backgroundColor: backgroundColor,
-      ),
-      child: Row(
-        children: [
-          Icon(icon),
-          SizedBox(width: 5),
-          Text(title),
-        ],
-      ),
+  Widget buildTextButton(String title, Color backgroundColor) {
+    return Container(
+      child: _isLoggedIn
+          ? Column(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HomePage(),
+                      ),
+                    );
+                    _googleSignIn.signOut().then((value) {
+                      setState(() {
+                        _isLoggedIn = false;
+                      });
+                    }).catchError((e) {});
+                  },
+                  child: Text("LogOut"),
+                ),
+              ],
+            )
+          : TextButton(
+              onPressed: () async {
+                await _googleSignIn.signIn().then((userData) {
+                  setState(() {
+                    _isLoggedIn = true;
+                    _userObj = userData!;
+                  });
+                }).catchError((e) {
+                  print(e);
+                });
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomePage(),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(
+                side: BorderSide(width: 1, color: Colors.grey),
+                minimumSize: Size(170, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                primary: Colors.white,
+                backgroundColor: backgroundColor,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -354,38 +294,97 @@ class _LoginSignupState extends State<LoginSignup> {
     return AnimatedPositioned(
       duration: Duration(milliseconds: 700),
       curve: Curves.bounceInOut,
-      top: isSignUpScreen ? 535 : 430,
+      top: isSignUpScreen ? 510 : 470,
       left: 0,
       right: 0,
       child: Center(
-        child: Container(
-          height: 90,
-          width: 90,
-          padding: EdgeInsets.all(15),
-          decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(50),
-              boxShadow: [
-                if (showShadow)
-                  BoxShadow(
-                    color: Colors.black.withOpacity(.3),
-                    spreadRadius: 5,
-                    blurRadius: 15,
-                    offset: Offset(0, 1),
+        child: GestureDetector(
+          onTap: () {
+            if (isSignUpScreen) {
+              if (_name.text.isEmpty) {
+                showToastName(context);
+              } else if (!_email.text.contains('@')) {
+                showToastEmail(context);
+              } else if (_password.text.length < 6) {
+                showToastPassword(context);
+              } else if (_name.text.isNotEmpty &&
+                  _email.text.isNotEmpty &&
+                  _password.text.isNotEmpty) {
+                setState(() {
+                  isLoading = true;
+                });
+                createAccount(_name.text, _email.text, _password.text)
+                    .then((user) {
+                  if (user != null) {
+                    setState(() {
+                      isLoading = false;
+                    });
+                    Navigator.push(
+                        context, MaterialPageRoute(builder: (_) => HomePage()));
+                    print("Login Sucessfully!");
+                  } else {
+                    showToast(context);
+                    print("Login Failed!");
+                  }
+                });
+              } else {
+                print("Please! enter fields");
+              }
+            } else {
+              if (_email.text.isNotEmpty && _password.text.isNotEmpty) {
+                setState(() {
+                  isLoading = true;
+                });
+                logIn(_email.text, _password.text).then((user) {
+                  if (user != null) {
+                    print("Login Sucessfully!");
+                    setState(() {
+                      isLoading = false;
+                    });
+                    Navigator.push(
+                        context, MaterialPageRoute(builder: (_) => HomePage()));
+                  } else {
+                    showToast(context);
+                    print("Login Failed!");
+                    setState(() {
+                      isLoading = false;
+                    });
+                  }
+                });
+              } else {
+                print("Please! fill the data correctly");
+              }
+            }
+          },
+          child: Container(
+            height: 90,
+            width: 90,
+            padding: EdgeInsets.all(15),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(50),
+                boxShadow: [
+                  if (showShadow)
+                    BoxShadow(
+                      color: Colors.black.withOpacity(.3),
+                      spreadRadius: 5,
+                      blurRadius: 15,
+                      offset: Offset(0, 1),
+                    )
+                ]),
+            child: !showShadow
+                ? Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                          colors: [Colors.orange.shade200, Colors.red.shade400],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Icon(Icons.arrow_forward, color: Colors.white),
                   )
-              ]),
-          child: !showShadow
-              ? Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        colors: [Colors.orange.shade200, Colors.red.shade400],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Icon(Icons.arrow_forward, color: Colors.white),
-                )
-              : Center(),
+                : Center(),
+          ),
         ),
       ),
     );
@@ -395,7 +394,18 @@ class _LoginSignupState extends State<LoginSignup> {
       IconData icon, String hintText, bool isPassword, bool isEmail) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      child: TextField(
+      child: TextFormField(
+        onChanged: (value) {
+          setState(() {
+            if (hintText == 'User name') {
+              _name.text = value;
+            } else if (hintText == 'Email') {
+              _email.text = value;
+            } else {
+              _password.text = value;
+            }
+          });
+        },
         obscureText: isPassword,
         keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
         decoration: InputDecoration(
@@ -414,7 +424,7 @@ class _LoginSignupState extends State<LoginSignup> {
           ),
           contentPadding: EdgeInsets.all(10),
           hintText: hintText,
-          hintStyle: TextStyle(fontSize: 14, color: textColor1),
+          hintStyle: TextStyle(fontSize: 16, color: textColor1),
         ),
       ),
     );

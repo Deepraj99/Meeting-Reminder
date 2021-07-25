@@ -24,7 +24,7 @@ class GradientColors {
 
 List<AlarmInfo> alarms = [
   AlarmInfo(
-      DateFormat('kk:mm').format(DateTime.now()),
+      DateFormat.jm().format(DateTime.now()),
       DateFormat('dd-MM-yyyy').format(DateTime.now()),
       "Chemistry",
       true,

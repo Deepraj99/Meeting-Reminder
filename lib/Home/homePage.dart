@@ -1,9 +1,16 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meeting_reminder/Home/methods.dart';
 import 'package:meeting_reminder/Widgets/colors.dart';
+import 'package:meeting_reminder/Widgets/drawer.dart';
+import 'package:meeting_reminder/Widgets/multiSelecting.dart';
 import 'package:meeting_reminder/Widgets/notifications.dart';
+import 'package:multi_select_flutter/bottom_sheet/multi_select_bottom_sheet.dart';
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
+import 'package:multi_select_flutter/util/multi_select_list_type.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -15,26 +22,30 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late DateTime _alarmTime;
   late String _alarmTimeString;
+  late String meetTitle;
+  late String meetDays;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kClockBackgroundColor.withOpacity(.70),
+      appBar: AppBar(
+        backgroundColor: kClockBackgroundColor,
+        centerTitle: true,
+        title: Text(
+          'Meeting Reminder',
+          style: GoogleFonts.lato(
+            color: Colors.white,
+            fontSize: 24,
+          ),
+        ),
+      ),
+      drawer: navigationDrawer(),
       body: Container(
         padding: EdgeInsets.symmetric(horizontal: 32, vertical: 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Text(
-                'Meeting Reminder',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
             Expanded(
               child: ListView(
                 children: alarms.map<Widget>((alarm) {
@@ -73,9 +84,9 @@ class _HomePageState extends State<HomePage> {
                                 SizedBox(width: 8),
                                 Text(
                                   alarm.description,
-                                  style: TextStyle(
+                                  style: GoogleFonts.lato(
                                     color: Colors.white,
-                                    fontSize: 18,
+                                    fontSize: 20,
                                   ),
                                 ),
                               ],
@@ -91,8 +102,9 @@ class _HomePageState extends State<HomePage> {
                         SizedBox(height: 20),
                         Text(
                           alarm.days,
-                          style: TextStyle(
+                          style: GoogleFonts.lato(
                             color: Colors.white,
+                            fontSize: 15,
                           ),
                         ),
                         Row(
@@ -100,7 +112,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Text(
                               alarm.alarmTime,
-                              style: TextStyle(
+                              style: GoogleFonts.lato(
                                 color: Colors.white,
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
@@ -115,7 +127,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 child: Text(
                                   "Join Meet",
-                                  style: TextStyle(
+                                  style: GoogleFonts.lato(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -131,14 +143,6 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ],
                         ),
-                        // Text(
-                        //   alarm.alarmDate,
-                        //   style: TextStyle(
-                        //     color: Colors.white,
-                        //     fontWeight: FontWeight.w700,
-                        //     // fontSize: 24,
-                        //   ),
-                        // ),
                       ],
                     ),
                   );
@@ -163,100 +167,26 @@ class _HomePageState extends State<HomePage> {
                               model.instantNotification(); // notification
                               _alarmTimeString =
                                   DateFormat('HH:mm').format(DateTime.now());
-                              showModalBottomSheet(
-                                useRootNavigator: true,
-                                context: context,
-                                clipBehavior: Clip.antiAlias,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(24),
-                                  ),
-                                ),
-                                builder: (context) {
-                                  return StatefulBuilder(
-                                    builder: (context, setModalState) {
-                                      return Container(
-                                        padding: const EdgeInsets.all(32),
-                                        child: Column(
-                                          children: [
-                                            FlatButton(
-                                              onPressed: () async {
-                                                var selectedTime =
-                                                    await showTimePicker(
-                                                  context: context,
-                                                  initialTime: TimeOfDay.now(),
-                                                );
-                                                if (selectedTime != null) {
-                                                  final now = DateTime.now();
-                                                  var selectedDateTime =
-                                                      DateTime(
-                                                          now.year,
-                                                          now.month,
-                                                          now.day,
-                                                          selectedTime.hour,
-                                                          selectedTime.minute);
-                                                  _alarmTime = selectedDateTime;
-                                                  setModalState(() {
-                                                    _alarmTimeString =
-                                                        DateFormat('HH:mm')
-                                                            .format(
-                                                                selectedDateTime);
-                                                  });
-                                                }
-                                              },
-                                              child: Text(
-                                                _alarmTimeString,
-                                                style: TextStyle(fontSize: 32),
-                                              ),
-                                            ),
-                                            ListTile(
-                                              title: Text('Repeat'),
-                                              trailing:
-                                                  Icon(Icons.arrow_forward_ios),
-                                            ),
-                                            ListTile(
-                                              title: Text('Sound'),
-                                              trailing:
-                                                  Icon(Icons.arrow_forward_ios),
-                                            ),
-                                            ListTile(
-                                              title: Text('Title'),
-                                              trailing:
-                                                  Icon(Icons.arrow_forward_ios),
-                                            ),
-                                            FloatingActionButton.extended(
-                                              onPressed: () {},
-                                              icon: Icon(Icons.alarm),
-                                              label: Text('Save'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              );
+                              MeetingBottomSheet(context);
+
                               // scheduleAlarm();
                             },
                             child: Column(
                               children: <Widget>[
                                 Icon(Icons.add,
-                                    color: Colors.white, size: 40.0),
+                                    color: Colors.white, size: 70.0),
                                 SizedBox(height: 8),
                                 Text(
-                                  'Add Alarm',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontFamily: 'avenir'),
+                                  'Add Meeting',
+                                  style: GoogleFonts.lato(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         )),
-                  ),
-                  TextButton(
-                    onPressed: () => logOut(context),
-                    child: Text("LogOut"),
                   ),
                 ]).toList(),
               ),
@@ -264,6 +194,179 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  MeetingBottomSheet(BuildContext context) async {
+    TextEditingController _textFieldController = TextEditingController();
+    var selectedDays = [];
+    showModalBottomSheet(
+      backgroundColor: kClockBackgroundColor,
+      useRootNavigator: true,
+      context: context,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SingleChildScrollView(
+              child: Container(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    Center(
+                      child: Text(
+                        "Set Meeting",
+                        style:
+                            GoogleFonts.lato(fontSize: 25, color: Colors.white),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    ListTile(
+                      title: Text('Title',
+                          style: GoogleFonts.lato(
+                              fontSize: 20, color: Colors.white)),
+                      trailing: InkWell(
+                        child:
+                            Icon(Icons.arrow_forward_ios, color: Colors.white),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Text('Meet title',
+                                    style: GoogleFonts.lato(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w700)),
+                                content: TextField(
+                                  onChanged: (value) {
+                                    setState(() {
+                                      meetTitle = value;
+                                    });
+                                  },
+                                  controller: _textFieldController,
+                                  decoration: InputDecoration(
+                                      hintText: "Max. 20 characters",
+                                      hintStyle:
+                                          GoogleFonts.lato(color: Colors.grey)),
+                                ),
+                                actions: <Widget>[
+                                  InkWell(
+                                    child: Container(
+                                      padding: EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.black),
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: Text(
+                                        "Cancle",
+                                        style: GoogleFonts.lato(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      setState(() {
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                  ),
+                                  InkWell(
+                                    child: Container(
+                                      padding: EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.black),
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: Text(
+                                        "OK",
+                                        style: GoogleFonts.lato(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      setState(() {
+                                        // codeDialog = meetTitle;
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Time',
+                          style: GoogleFonts.lato(
+                              fontSize: 20, color: Colors.white)),
+                      trailing: InkWell(
+                        child:
+                            Icon(Icons.arrow_forward_ios, color: Colors.white),
+                        onTap: () async {
+                          var selectedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                          );
+                          if (selectedTime != null) {
+                            final now = DateTime.now();
+                            var selectedDateTime = DateTime(
+                                now.year,
+                                now.month,
+                                now.day,
+                                selectedTime.hour,
+                                selectedTime.minute);
+                            _alarmTime = selectedDateTime;
+                            setModalState(() {
+                              _alarmTimeString =
+                                  DateFormat('HH:mm').format(selectedDateTime);
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    ListTile(
+                      title: Text('Repeat',
+                          style: GoogleFonts.lato(
+                            fontSize: 20,
+                            color: Colors.white,
+                          )),
+                      trailing: MultiSelecting(),
+                    ),
+                    InkWell(
+                      child: Container(
+                        padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Text(
+                          "Save",
+                          style: GoogleFonts.lato(
+                            fontSize: 20,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

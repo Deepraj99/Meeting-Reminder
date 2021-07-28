@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meeting_reminder/Home/methods.dart';
+import 'package:meeting_reminder/Widgets/alarm_helper.dart';
+import 'package:meeting_reminder/Widgets/alarm_info.dart';
 import 'package:meeting_reminder/Widgets/colors.dart';
 import 'package:meeting_reminder/Widgets/drawer.dart';
 import 'package:meeting_reminder/Widgets/multiSelecting.dart';
@@ -13,8 +15,12 @@ import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:multi_select_flutter/util/multi_select_list_type.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+
+var uuid = Uuid();
 
 class HomePage extends StatefulWidget {
+  static var selectedDays;
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -22,8 +28,28 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late DateTime _alarmTime;
   late String _alarmTimeString;
+  AlarmHelper _alarmHelper = AlarmHelper();
   late String meetTitle;
   late String meetDays;
+  late String meetTime;
+  // late int meetId;
+  Future<List<AlarmInfo>>? _alarms;
+
+  @override
+  void initState() {
+    _alarmTime = new DateTime.now();
+    _alarmHelper.initializeDatabase().then((value) {
+      print('----------database initialized');
+      loadAlarms();
+    });
+    super.initState();
+  }
+
+  void loadAlarms() {
+    print("*****************************");
+    _alarms = _alarmHelper.getAlarms();
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,148 +73,181 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: ListView(
-                children: alarms.map<Widget>((alarm) {
-                  return Container(
-                    margin: EdgeInsets.only(bottom: 32),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: alarm.gradientColors,
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: alarm.gradientColors.last.withOpacity(0.4),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                          offset: Offset(4, 4),
-                        ),
-                      ],
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(15),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.label,
-                                    color: Colors.white, size: 24),
-                                SizedBox(width: 8),
-                                Text(
-                                  alarm.description,
-                                  style: GoogleFonts.lato(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ],
+              child: FutureBuilder<List<AlarmInfo>>(
+                future: _alarms,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return ListView(
+                      children: snapshot.data!.map<Widget>((alarm) {
+                        //snapshot.data!
+                        return Container(
+                          margin: EdgeInsets.only(bottom: 32),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              // colors: alarm.gradientColors,
+                              colors: GradientColors.sea,
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
                             ),
-                            IconButton(
-                              icon: new Icon(Icons.edit,
-                                  size: 25, color: Colors.white),
-                              highlightColor: Colors.pink,
-                              onPressed: () {},
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    // alarm.gradientColors.last.withOpacity(0.4),
+                                    GradientColors.sea.last.withOpacity(0.4),
+                                blurRadius: 8,
+                                spreadRadius: 2,
+                                offset: Offset(4, 4),
+                              ),
+                            ],
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(15),
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
-                        Text(
-                          alarm.days,
-                          style: GoogleFonts.lato(
-                            color: Colors.white,
-                            fontSize: 15,
                           ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              alarm.alarmTime,
-                              style: GoogleFonts.lato(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.label,
+                                          color: Colors.white, size: 24),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        // alarm.description,
+                                        // 'New Meeting',
+                                        // meetTitle,
+                                        alarm.title,
+                                        style: GoogleFonts.lato(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  IconButton(
+                                    icon: new Icon(Icons.edit,
+                                        size: 25, color: Colors.white),
+                                    highlightColor: Colors.pink,
+                                    onPressed: () {},
+                                  ),
+                                ],
                               ),
-                            ),
-                            InkWell(
-                              child: Container(
-                                padding: EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.white),
-                                  borderRadius: BorderRadius.circular(5),
+                              SizedBox(height: 20),
+                              Text(
+                                // alarm.days,
+                                'Mon-Fri',
+                                style: GoogleFonts.lato(
+                                  color: Colors.white,
+                                  fontSize: 15,
                                 ),
-                                child: Text(
-                                  "Join Meet",
-                                  style: GoogleFonts.lato(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    // alarm.alarmTime,
+                                    // '07:09',
+                                    // _alarmTimeString,
+                                    // meetTime = ,
+                                    DateFormat('hh:mm a')
+                                        .format(alarm.alarmDateTime),
+                                    style: GoogleFonts.lato(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    child: Container(
+                                      padding: EdgeInsets.all(5),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.white),
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: Text(
+                                        "Join Meet",
+                                        style: GoogleFonts.lato(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () {},
+                                  ),
+                                  IconButton(
+                                    icon: new Icon(Icons.delete,
+                                        size: 25, color: Colors.white),
+                                    highlightColor: Colors.pink,
+                                    onPressed: () {},
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      }).followedBy([
+                        DottedBorder(
+                          strokeWidth: 3,
+                          color: Colors.white,
+                          borderType: BorderType.RRect,
+                          radius: Radius.circular(24),
+                          dashPattern: [5, 4],
+                          child: Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: kBackgroundColor,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(24)),
+                              ),
+                              child: Consumer<NotificationService>(
+                                builder: (context, model, _) => FlatButton(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 32, vertical: 16),
+                                  onPressed: () {
+                                    model.instantNotification(); // notification
+                                    _alarmTimeString = DateFormat('HH:mm')
+                                        .format(DateTime.now());
+                                    MeetingBottomSheet(context);
+
+                                    // scheduleAlarm();
+                                  },
+                                  child: Column(
+                                    children: <Widget>[
+                                      Icon(Icons.add,
+                                          color: Colors.white, size: 70.0),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        'Add Meeting',
+                                        style: GoogleFonts.lato(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                              onTap: () {},
-                            ),
-                            IconButton(
-                              icon: new Icon(Icons.delete,
-                                  size: 25, color: Colors.white),
-                              highlightColor: Colors.pink,
-                              onPressed: () {},
-                            ),
-                          ],
+                              )),
                         ),
-                      ],
+                      ]).toList(),
+                    );
+                  }
+                  // return MeetingBottomSheet(context);
+                  return Center(
+                    child: Text(
+                      'Loading...',
+                      style: GoogleFonts.lato(
+                        color: Colors.white,
+                        fontSize: 20,
+                      ),
                     ),
                   );
-                }).followedBy([
-                  DottedBorder(
-                    strokeWidth: 3,
-                    color: Colors.white,
-                    borderType: BorderType.RRect,
-                    radius: Radius.circular(24),
-                    dashPattern: [5, 4],
-                    child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: kBackgroundColor,
-                          borderRadius: BorderRadius.all(Radius.circular(24)),
-                        ),
-                        child: Consumer<NotificationService>(
-                          builder: (context, model, _) => FlatButton(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 32, vertical: 16),
-                            onPressed: () {
-                              model.instantNotification(); // notification
-                              _alarmTimeString =
-                                  DateFormat('HH:mm').format(DateTime.now());
-                              MeetingBottomSheet(context);
-
-                              // scheduleAlarm();
-                            },
-                            child: Column(
-                              children: <Widget>[
-                                Icon(Icons.add,
-                                    color: Colors.white, size: 70.0),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Add Meeting',
-                                  style: GoogleFonts.lato(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )),
-                  ),
-                ]).toList(),
+                },
               ),
             ),
           ],
@@ -246,6 +305,7 @@ class _HomePageState extends State<HomePage> {
                                   onChanged: (value) {
                                     setState(() {
                                       meetTitle = value;
+                                      print(meetTitle);
                                     });
                                   },
                                   controller: _textFieldController,
@@ -293,7 +353,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     onTap: () {
                                       setState(() {
-                                        // codeDialog = meetTitle;
+                                        meetTitle = meetTitle;
                                         Navigator.pop(context);
                                       });
                                     },
@@ -329,6 +389,7 @@ class _HomePageState extends State<HomePage> {
                             setModalState(() {
                               _alarmTimeString =
                                   DateFormat('HH:mm').format(selectedDateTime);
+                              print(_alarmTimeString);
                             });
                           }
                         },
@@ -358,7 +419,34 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      onTap: () {},
+                      onTap: () async {
+                        DateTime scheduleAlarmDateTime;
+                        if (_alarmTime.isAfter(DateTime.now()))
+                          scheduleAlarmDateTime = _alarmTime;
+                        else
+                          scheduleAlarmDateTime =
+                              _alarmTime.add(Duration(days: 1));
+
+                        String str = HomePage.selectedDays;
+                        var alarmInfo = AlarmInfo(
+                          // id: meetId,
+                          alarmDateTime: scheduleAlarmDateTime,
+                          gradientColorIndex: alarms.length,
+                          title: str,
+                          isPending: false,
+                          // days: str,
+                        );
+                        _alarmHelper.insertAlarm(alarmInfo);
+                        setState(() {
+                          _alarms = _alarmHelper.getAlarms();
+                          // print('MeetID: $meetId');
+                        });
+                        Navigator.pop(context);
+                        print('aa + $meetTitle');
+                        print('aa + $_alarmTimeString');
+                        // String str = HomePage.selectedDays;
+                        print('aa + ${HomePage.selectedDays}');
+                      },
                     ),
                   ],
                 ),

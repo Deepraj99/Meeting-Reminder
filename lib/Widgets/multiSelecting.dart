@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:meeting_reminder/Home/homePage.dart';
 
 class MultiSelectDialogItem<V> {
   const MultiSelectDialogItem(this.value, this.label);
@@ -38,14 +41,6 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
     });
   }
 
-  void _onCancelTap() {
-    Navigator.pop(context);
-  }
-
-  void _onSubmitTap() {
-    Navigator.pop(context, _selectedValues);
-  }
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -78,7 +73,11 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
               ),
             ),
           ),
-          onTap: () => _onCancelTap,
+          onTap: () {
+            setState(() {
+              Navigator.pop(context);
+            });
+          },
         ),
         InkWell(
           child: Container(
@@ -95,7 +94,11 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
               ),
             ),
           ),
-          onTap: () => _onSubmitTap,
+          onTap: () {
+            setState(() {
+              Navigator.pop(context, _selectedValues);
+            });
+          },
         ),
       ],
     );
@@ -162,7 +165,8 @@ class _MultiSelectingState extends State<MultiSelecting> {
         );
       },
     );
-
+    HomePage.selectedDays = selectedValues;
+    // print(HomePage.selectedDays);
     print(selectedValues);
     getvaluefromkey(selectedValues!);
   }

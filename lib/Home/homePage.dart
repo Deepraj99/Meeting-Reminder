@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> {
   late String meetTitle;
   late String meetDays;
   late String meetTime;
-  // late int meetId;
+  int meetId = 1;
   Future<List<AlarmInfo>>? _alarms;
 
   @override
@@ -184,7 +184,12 @@ class _HomePageState extends State<HomePage> {
                                     icon: new Icon(Icons.delete,
                                         size: 25, color: Colors.white),
                                     highlightColor: Colors.pink,
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      _alarmHelper.delete(alarm.id);
+                                      setState(() {
+                                        _alarms = _alarmHelper.getAlarms();
+                                      });
+                                    },
                                   ),
                                 ],
                               ),
@@ -236,17 +241,65 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ]).toList(),
                     );
+                  } else {
+                    return Column(
+                      children: [
+                        Text(
+                          'No data found!',
+                          style: GoogleFonts.lato(
+                            color: Colors.white,
+                            fontSize: 18,
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Center(
+                          child: DottedBorder(
+                            strokeWidth: 3,
+                            color: Colors.white,
+                            borderType: BorderType.RRect,
+                            radius: Radius.circular(24),
+                            dashPattern: [5, 4],
+                            child: Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: kBackgroundColor,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(24)),
+                                ),
+                                child: Consumer<NotificationService>(
+                                  builder: (context, model, _) => FlatButton(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 32, vertical: 16),
+                                    onPressed: () {
+                                      model
+                                          .instantNotification(); // notification
+                                      _alarmTimeString = DateFormat('HH:mm')
+                                          .format(DateTime.now());
+                                      MeetingBottomSheet(context);
+
+                                      // scheduleAlarm();
+                                    },
+                                    child: Column(
+                                      children: <Widget>[
+                                        Icon(Icons.add,
+                                            color: Colors.white, size: 70.0),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          'Add Meeting',
+                                          style: GoogleFonts.lato(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )),
+                          ),
+                        ),
+                      ],
+                    );
                   }
-                  // return MeetingBottomSheet(context);
-                  return Center(
-                    child: Text(
-                      'Loading...',
-                      style: GoogleFonts.lato(
-                        color: Colors.white,
-                        fontSize: 20,
-                      ),
-                    ),
-                  );
                 },
               ),
             ),
@@ -427,21 +480,22 @@ class _HomePageState extends State<HomePage> {
                           scheduleAlarmDateTime =
                               _alarmTime.add(Duration(days: 1));
 
-                        String str = HomePage.selectedDays;
+                        // String str = HomePage.selectedDays;
                         var alarmInfo = AlarmInfo(
                           // id: meetId,
+                          title: meetTitle,
+                          isPending: 0,
                           alarmDateTime: scheduleAlarmDateTime,
                           gradientColorIndex: alarms.length,
-                          title: str,
-                          isPending: false,
+
                           // days: str,
                         );
                         _alarmHelper.insertAlarm(alarmInfo);
                         setState(() {
                           _alarms = _alarmHelper.getAlarms();
-                          // print('MeetID: $meetId');
                         });
                         Navigator.pop(context);
+                        // print('aa $meetId');
                         print('aa + $meetTitle');
                         print('aa + $_alarmTimeString');
                         // String str = HomePage.selectedDays;

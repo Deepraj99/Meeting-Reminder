@@ -1,10 +1,10 @@
 class AlarmInfo {
-  late int id;
+  int id = 2;
   late String title;
   late DateTime alarmDateTime;
-  late bool isPending;
+  late int isPending;
   late int gradientColorIndex;
-  late String days; //
+  // late String days; //
 
   AlarmInfo({
     id,
@@ -20,7 +20,7 @@ class AlarmInfo {
       id: json["id"],
       title: json["title"],
       alarmDateTime: DateTime.parse(json["alarmDateTime"]),
-      isPending: json["isPending"] == 0 ? false : true,
+      isPending: json["isPending"], // == 0 ? false : true,
       gradientColorIndex: json["gradientColorIndex"],
       // days: json["days"] //
     );

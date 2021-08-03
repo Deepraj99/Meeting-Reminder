@@ -29,23 +29,25 @@ class AlarmHelper {
 
   Future<Database> initializeDatabase() async {
     var dir = await getDatabasesPath();
-    var path = dir + "alarm.db";
-
+    var path = dir + "/alarm3.db";
+    print(path);
     var database = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) {
+        print("DB created");
         db.execute('''
-          create table $tableAlarm ( 
-          $columnId integer primary key autoincrement, 
+          create table `$tableAlarm` ( 
+          $columnId integer primary key autoincrement,
           $columnTitle text not null,
           $columnDateTime text not null,
           $columnPending integer,
-          $columnColorIndex integer,
-          $columnDays text not null)
+          $columnColorIndex integer )
         ''');
       },
     );
+
+    inspect(database);
     return database;
   }
 
@@ -62,6 +64,7 @@ class AlarmHelper {
     var db = await this.database;
     var result = await db.query(tableAlarm);
     result.forEach((element) {
+      print(element);
       var alarmInfo = AlarmInfo.fromMap(element);
       _alarms.add(alarmInfo);
     });
@@ -70,6 +73,7 @@ class AlarmHelper {
   }
 
   Future<int> delete(int id) async {
+    print("DELETING $id");
     var db = await this.database;
     return await db.delete(tableAlarm, where: '$columnId = ?', whereArgs: [id]);
   }

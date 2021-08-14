@@ -15,6 +15,7 @@ import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:multi_select_flutter/util/multi_select_list_type.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 var uuid = Uuid();
@@ -32,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   late String meetTitle;
   late String meetDays;
   late String meetTime;
+  late String meetLink;
   int meetId = 1;
   Future<List<AlarmInfo>>? _alarms;
 
@@ -53,6 +55,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    _launchURL(String url) async {
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        throw 'Could not launch $url';
+      }
+    }
+
     return Scaffold(
       backgroundColor: kClockBackgroundColor.withOpacity(.70),
       appBar: AppBar(
@@ -86,16 +96,35 @@ class _HomePageState extends State<HomePage> {
                               horizontal: 14, vertical: 8),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              // colors: alarm.gradientColors,
-                              colors: GradientColors.sea,
+                              colors: meetId % 6 == 0
+                                  ? GradientColors.sunset
+                                  : meetId % 6 == 1
+                                      ? GradientColors.fire
+                                      : meetId % 6 == 2
+                                          ? GradientColors.mango
+                                          : meetId % 6 == 3
+                                              ? GradientColors.sea
+                                              : GradientColors.sky,
                               begin: Alignment.centerLeft,
                               end: Alignment.centerRight,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color:
-                                    // alarm.gradientColors.last.withOpacity(0.4),
-                                    GradientColors.sea.last.withOpacity(0.4),
+                                color: meetId % 6 == 0
+                                    ? GradientColors.sunset.last
+                                        .withOpacity(0.4)
+                                    : meetId % 6 == 1
+                                        ? GradientColors.fire.last
+                                            .withOpacity(0.4)
+                                        : meetId % 6 == 2
+                                            ? GradientColors.mango.last
+                                                .withOpacity(0.4)
+                                            : meetId % 6 == 3
+                                                ? GradientColors.sea.last
+                                                    .withOpacity(0.4)
+                                                : GradientColors.sky.last
+                                                    .withOpacity(0.4),
+                                // GradientColors.sea.last.withOpacity(0.4),
                                 blurRadius: 8,
                                 spreadRadius: 2,
                                 offset: Offset(4, 4),
@@ -178,14 +207,21 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       ),
                                     ),
-                                    onTap: () {},
+                                    onTap: () {
+                                      // _launchURL("https://www.pexels.com/");
+                                      // _launchURL(meetWebLink);
+                                    },
                                   ),
                                   IconButton(
                                     icon: new Icon(Icons.delete,
                                         size: 25, color: Colors.white),
                                     highlightColor: Colors.pink,
                                     onPressed: () {
-                                      _alarmHelper.delete(alarm.id);
+                                      print("delete clicked: ");
+                                      // print(temp);
+                                      print(alarm.id);
+                                      _alarmHelper
+                                          .delete(alarm.title); //alarm.id
                                       setState(() {
                                         _alarms = _alarmHelper.getAlarms();
                                       });
@@ -311,6 +347,7 @@ class _HomePageState extends State<HomePage> {
 
   MeetingBottomSheet(BuildContext context) async {
     TextEditingController _textFieldController = TextEditingController();
+    final _controller = TextEditingController();
     var selectedDays = [];
     showModalBottomSheet(
       backgroundColor: kClockBackgroundColor,
@@ -456,6 +493,94 @@ class _HomePageState extends State<HomePage> {
                           )),
                       trailing: MultiSelecting(),
                     ),
+                    TextField(
+                      controller: _controller,
+                      onChanged: (value) {
+                        setState(() {
+                          meetLink = value;
+                          print(meetLink);
+                        });
+                      },
+                    ),
+                    // ListTile(
+                    //   title: Text('Link',
+                    //       style: GoogleFonts.lato(
+                    //           fontSize: 20, color: Colors.white)),
+                    //   trailing: InkWell(
+                    //     child:
+                    //         Icon(Icons.arrow_forward_ios, color: Colors.white),
+                    //     onTap: () {
+                    //       showDialog(
+                    //         context: context,
+                    //         builder: (context) {
+                    //           return AlertDialog(
+                    //             title: Text('Web Link',
+                    //                 style: GoogleFonts.lato(
+                    //                     color: Colors.black,
+                    //                     fontWeight: FontWeight.w700)),
+                    //             content: TextField(
+                    //               onChanged: (value) {
+                    //                 setState(() {
+                    //                   meetLink = value;
+                    //                 });
+                    //               },
+                    //               controller: _textFieldController,
+                    //               decoration: InputDecoration(
+                    //                   hintText: "Enter web link",
+                    //                   hintStyle:
+                    //                       GoogleFonts.lato(color: Colors.grey)),
+                    //             ),
+                    //             actions: <Widget>[
+                    //               InkWell(
+                    //                 child: Container(
+                    //                   padding: EdgeInsets.all(10),
+                    //                   decoration: BoxDecoration(
+                    //                     border: Border.all(color: Colors.black),
+                    //                     borderRadius: BorderRadius.circular(5),
+                    //                   ),
+                    //                   child: Text(
+                    //                     "Cancle",
+                    //                     style: GoogleFonts.lato(
+                    //                       color: Colors.black,
+                    //                       fontWeight: FontWeight.w700,
+                    //                     ),
+                    //                   ),
+                    //                 ),
+                    //                 onTap: () {
+                    //                   setState(() {
+                    //                     Navigator.pop(context);
+                    //                   });
+                    //                 },
+                    //               ),
+                    //               InkWell(
+                    //                 child: Container(
+                    //                   padding: EdgeInsets.all(10),
+                    //                   decoration: BoxDecoration(
+                    //                     border: Border.all(color: Colors.black),
+                    //                     borderRadius: BorderRadius.circular(5),
+                    //                   ),
+                    //                   child: Text(
+                    //                     "OK",
+                    //                     style: GoogleFonts.lato(
+                    //                       color: Colors.black,
+                    //                       fontWeight: FontWeight.w700,
+                    //                     ),
+                    //                   ),
+                    //                 ),
+                    //                 onTap: () {
+                    //                   setState(() {
+                    //                     meetLink = meetLink;
+                    //                     Navigator.pop(context);
+                    //                   });
+                    //                 },
+                    //               ),
+                    //             ],
+                    //           );
+                    //         },
+                    //       );
+                    //     },
+                    //   ),
+                    // ),
                     InkWell(
                       child: Container(
                         padding: EdgeInsets.fromLTRB(10, 5, 10, 5),
@@ -487,6 +612,7 @@ class _HomePageState extends State<HomePage> {
                           isPending: 0,
                           alarmDateTime: scheduleAlarmDateTime,
                           gradientColorIndex: alarms.length,
+                          link: meetLink,
 
                           // days: str,
                         );
@@ -495,10 +621,10 @@ class _HomePageState extends State<HomePage> {
                           _alarms = _alarmHelper.getAlarms();
                         });
                         Navigator.pop(context);
-                        // print('aa $meetId');
+                        meetId += 1;
                         print('aa + $meetTitle');
+                        print('aa + $meetLink');
                         print('aa + $_alarmTimeString');
-                        // String str = HomePage.selectedDays;
                         print('aa + ${HomePage.selectedDays}');
                       },
                     ),

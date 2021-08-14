@@ -10,7 +10,7 @@ final String columnTitle = 'title';
 final String columnDateTime = 'alarmDateTime';
 final String columnPending = 'isPending';
 final String columnColorIndex = 'gradientColorIndex';
-final String columnDays = 'days'; //
+final String columnLink = 'link'; //
 
 class AlarmHelper {
   static late Database _database;
@@ -29,7 +29,7 @@ class AlarmHelper {
 
   Future<Database> initializeDatabase() async {
     var dir = await getDatabasesPath();
-    var path = dir + "/alarm3.db";
+    var path = dir + "/alarm18.db";
     print(path);
     var database = await openDatabase(
       path,
@@ -37,13 +37,15 @@ class AlarmHelper {
       onCreate: (db, version) {
         print("DB created");
         db.execute('''
-          create table `$tableAlarm` ( 
+          create table $tableAlarm ( 
           $columnId integer primary key autoincrement,
           $columnTitle text not null,
           $columnDateTime text not null,
           $columnPending integer,
-          $columnColorIndex integer )
-        ''');
+          $columnColorIndex integer,
+          $columnLink text not null
+           )
+        '''); //$columnLink text not null,
       },
     );
 
@@ -56,6 +58,7 @@ class AlarmHelper {
     inspect(alarmInfo);
     var result = await db.insert(tableAlarm, alarmInfo.toMap());
     print('result : $result');
+    // temp = result;
   }
 
   Future<List<AlarmInfo>> getAlarms() async {
@@ -72,9 +75,10 @@ class AlarmHelper {
     return _alarms;
   }
 
-  Future<int> delete(int id) async {
-    print("DELETING $id");
+  Future<int> delete(String title) async {
+    print("DELETING $title");
     var db = await this.database;
-    return await db.delete(tableAlarm, where: '$columnId = ?', whereArgs: [id]);
+    return await db
+        .delete(tableAlarm, where: '$columnTitle = ?', whereArgs: [title]);
   }
 }
